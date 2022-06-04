@@ -10,13 +10,33 @@
     </form>
     <div id="app">
       <button v-on:click="getBalance">Get details</button>
-      <h3>Instance owner: {{ getBalance() }}</h3>
+      <h3>Balance: {{ balance_ }}</h3>
     </div>
     <p><button v-on:click="tasst">UNSTAKE</button></p>
   </div>
 </template>
 
-<script>
+<!-- <script setup>
+</script> -->
+
+<script setup>
+
+import { ref } from "vue";
+
+// export default {
+//   name: 'App',
+//   data() {
+//     return {
+//       balance: null
+//     }
+//   },
+//   methods: {
+//     async details() {
+
+
+//     }
+//   }
+// }
 
 const { ethers } = require('ethers')
 //const TokenArtifact = require('../abis/Token.json')
@@ -24,6 +44,7 @@ const ABI_STAKE = require('../abis/Staking.json')
 const STAKE_ADDRESS = "0x420135F0dBd4c2a8C2dddF44a652e5d53DC3Ae98"
 //const TOKEN_ADDRESS = ""
 
+const balance_ = ref(0)
 let provider = new ethers.providers.Web3Provider(window.ethereum)
 let signer = provider.getSigner()
 
@@ -36,39 +57,15 @@ let readOnlyStake = new ethers.Contract(STAKE_ADDRESS, ABI_STAKE, provider)
 //let token = new ethers.Contract(TOKEN_ADDRESS, ABI_TOKEN, signer)
 //let tokenSigner = token.connect(signer)
 
-
-export default {
-  name: 'App',
-  data() {
-    return {
-      instanceOwner: '',
-      description: '',
-      askingPrice: '',
-      instanceBuyer: '',
-      offerPrice: ''
-    }
-  },
-  methods: {
-    async details() {
-      this.instanceOwner = (await this.$root.core.getInstanceOwner()).instanceOwner
-      this.description = (await this.$root.core.getDescription()).description
-      this.askingPrice = (await this.$root.core.getAskingPrice()).askingPrice
-      this.instanceBuyer = (await this.$root.core.getInstanceBuyer()).instanceBuyer
-      this.offerPrice = (await this.$root.core.getOfferPrice()).offerPrice
-    }
-  },
-  mounted() {
-  }
-}
-
-
 async function getBalance() {
   const stake = await readOnlyStake.stakes(signer.getAddress())
   let balance = 0
   if ((Date.now() - stake[2]) < stake[3]) { balance = (Number(stake[0]) + Number(stake[0]) * 10 * Number(Date.now() - stake[2]) / 100) }
   else { balance = (Number(stake[0]) + Number(stake[0]) * 10 * Number(stake[3]) / 100) }
+  balance_.value = balance
   return { balance: balance }
 }
+
 async function getTimeleft() {
   const stake = await readOnlyStake.stakes(signer.getAddress())
   let timeleft = 0
@@ -82,8 +79,7 @@ async function tasst() {
   await provider.send("eth_requestAccounts", [])
   // let signer = provider.getSigner()
   console.log(await signer.getAddress())
-  const stake = await readOnlyStake.stakes(signer.getAddress())
-  console.log(stake)
+  // const stake = await readOnlyStake.stakes(signer.getAddress())
   console.log(await getBalance())
   console.log(await getTimeleft())
 }
