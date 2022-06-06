@@ -1,8 +1,7 @@
 <template>
-  <img @click="tasst" alt="Vue logo" src="./assets/logo.png">
   <div>
     <h2>Staking contract: {{ txn }}</h2>
-    <button v-on:click="tasst">Connect</button>
+    <button v-on:click="connect">Connect</button>
     <form v-on:submit.prevent="stakeContract">
       <p>Stake Amount: <input v-model="amount_"></p>
       <p>Stake Period: <input v-model="period_"></p>
@@ -30,6 +29,8 @@ const ABI_TOKEN = require('../abis/Token.json')
 const ABI_STAKE = require('../abis/Staking.json')
 const STAKE_ADDRESS = "0x420135F0dBd4c2a8C2dddF44a652e5d53DC3Ae98"
 const TOKEN_ADDRESS = "0x319e8ff9de35074db065B62d475e5513c22d261c"
+let isStaked = false
+let StakingProcess = false
 
 const balance_ = ref(0)
 const timeleft_ = ref(0)
@@ -52,8 +53,17 @@ let token = new ethers.Contract(TOKEN_ADDRESS, ABI_TOKEN, signer)
 let tokenSigner = token.connect(signer)
 
 async function stakeContract() {
-  if (amount_.value == 0 || period_.value == 0) { alert("Please, enter amount of tokens") }
-  else {
+  if (amount_.value == 0 || period_.value == 0) {
+    alert("Please, enter amount of tokens")
+    return
+  }
+  if (StakingProcess) {
+    alert("Please, Wait for the end of the current process!")
+    return
+  }
+
+  if (!isStaked) {
+    StakingProcess = true
     const txApproveResponse = await tokenSigner.approve(STAKE_ADDRESS, amount_.value, { gasLimit: 300000 })
     console.log(amount_.value)
     const txApproveReceipt = await txApproveResponse.wait()
@@ -62,14 +72,22 @@ async function stakeContract() {
     console.log(period_.value)
     const txStakeReceipt = await txStakeResponse.wait()
     console.log(txStakeReceipt.transactionHash)
+    isStaked = true
+    StakingProcess = false
     return { transaction: txApproveReceipt.transactionHash }
   }
+  else { alert("You already have a stake!") }
 }
 
-async function unstakeContract(){
-    const txResponse = await stakeSigner.unstake({ gasLimit: 300000 })
-    const txReceipt = await txResponse.wait()
-    console.log(txReceipt.transactionHash)
+async function unstakeContract() {
+  if (!isStaked) {
+    alert("You don't have a stake")
+    return
+  }
+  const txResponse = await stakeSigner.unstake({ gasLimit: 300000 })
+  const txReceipt = await txResponse.wait()
+  console.log(txReceipt.transactionHash)
+  isStaked = false
 }
 
 async function getBalance() {
@@ -104,21 +122,9 @@ async function getDetails() {
   }
 }
 
-async function tasst() {
+async function connect() {
   // let provider = new ethers.providers.Web3Provider(window.ethereum)
   await provider.send("eth_requestAccounts", [])
-  console.log(await stakeContract())
-  // const stake = await readOnlyStake.stakes(signer.getAddress())
-  // // let signer = provider.getSigner()
-  // console.log(await signer.getAddress())
-  // // const stake = await readOnlyStake.stakes(signer.getAddress())
-  // console.log(await getBalance())
-  // console.log(Number(stake[3]))
-  // let time = ethers.BigNumber.from(Math.round(Date.now() / 1000))
-  // time = time.sub(stake[2])
-  // console.log(Number(time))
-  // console.log(Number(stake[2]))
-  // console.log(Math.round(Date.now() / 1000))
 }
 
 </script>
