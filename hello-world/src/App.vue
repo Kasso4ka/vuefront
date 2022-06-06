@@ -54,7 +54,7 @@ let tokenSigner = token.connect(signer)
 
 async function stakeContract() {
   if (amount_.value == 0 || period_.value == 0) {
-    alert("Please, enter amount of tokens")
+    alert("Please, enter amount of tokens and period of stake")
     return
   }
   if (StakingProcess) {
@@ -80,14 +80,27 @@ async function stakeContract() {
 }
 
 async function unstakeContract() {
-  if (!isStaked) {
+  if (StakingProcess) {
+    alert("Please, Wait for the end of the current process!")
+    return
+  }
+  if (!(isStaked)) {
     alert("You don't have a stake")
     return
   }
+  const stake = await readOnlyStake.stakes(signer.getAddress())
+  let time = ethers.BigNumber.from(Math.round(Date.now() / 1000))
+  time = time.sub(stake[2])
+  if (Number(time) < Number(stake[3])) {
+    alert("Please, wait until the end of the stake period")
+    return
+  }
+  StakingProcess = true
   const txResponse = await stakeSigner.unstake({ gasLimit: 300000 })
   const txReceipt = await txResponse.wait()
   console.log(txReceipt.transactionHash)
   isStaked = false
+  StakingProcess = false
 }
 
 async function getBalance() {
@@ -125,6 +138,9 @@ async function getDetails() {
 async function connect() {
   // let provider = new ethers.providers.Web3Provider(window.ethereum)
   await provider.send("eth_requestAccounts", [])
+  const stake = await readOnlyStake.stakes(signer.getAddress())
+  isStaked = stake[4]
+
 }
 
 </script>
