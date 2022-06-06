@@ -1,18 +1,21 @@
 <template>
   <div>
     <h2>Staking contract: {{ txn }}</h2>
-    <button v-on:click="connect">Connect</button>
-    <form v-on:submit.prevent="stakeContract">
-      <p>Stake Amount: <input v-model="amount_"></p>
-      <p>Stake Period: <input v-model="period_"></p>
-      <button>STAKE</button>
-    </form>
-    <div id="app">
-      <button v-on:click="getDetails">Get details</button>
-      <h3>{{ balance_ }}</h3>
-      <h3>{{ timeleft_ }}</h3>
+    <p><button v-on:click="connect">Connect</button></p>
+
+    <div id="stake">
+      <form v-on:submit.prevent="stakeContract">
+        <p>Stake Amount: <input v-model="amount_" id="input"> <br><br>
+          Stake Period: <input v-model="period_" id="input"></p><br>
+        <button id="button">STAKE</button>
+      </form>
     </div>
-    <p><button v-on:click="unstakeContract">UNSTAKE</button></p>
+    <div id="unstake">
+      <button v-on:click="getDetails">Get details</button>
+      <p>Your balance is {{ balance_ }} tokens <br>
+        {{ timeleft_ }}</p>
+      <button v-on:click="unstakeContract">UNSTAKE</button>
+    </div>
   </div>
 </template>
 
@@ -110,7 +113,7 @@ async function getBalance() {
   time = time.sub(stake[2])
   if (Number(time) < Number(stake[3])) { balance = (Number(stake[0]) + Number(stake[0]) * 10 * Number(Math.round(Date.now() / 1000) - Number(stake[2])) / 100) }
   else { balance = (Number(stake[0]) + Number(stake[0]) * 10 * Number(stake[3]) / 100) }
-  return { balance: balance }
+  return balance
 }
 
 async function getTimeleft() {
@@ -119,8 +122,12 @@ async function getTimeleft() {
   let time = ethers.BigNumber.from(Math.round(Date.now() / 1000))
   time = time.sub(stake[2])
   if (Number(time) < Number(stake[3])) { timeleft = Math.abs(Number(time.sub(stake[3]))) }
-  else { timeleft = "You can unstake!" }
-  return { timeleft: timeleft }
+  else {
+    timeleft = "You can unstake!"
+    return timeleft
+  }
+  timeleft = "You can unstake in" + timeleft + "seconds"
+  return timeleft
 }
 
 async function getDetails() {
@@ -147,16 +154,72 @@ async function connect() {
 
 <style>
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
+  color: whitesmoke;
   margin-top: 60px;
+  font-size: x-large;
+  text-shadow: 15px;
+  font-weight: 900;
 }
 
-p {
+body {
+  background-image: url(./assets/background.jpg);
+}
+
+div#stake {
+  height: 28%;
+  width: 25%;
   padding: 10px;
   margin: 10px;
+  position: absolute;
+  top: 40%;
+  left: 15%;
+  border: 4px solid gainsboro;
+  border-radius: 25px;
+  background-color: blueviolet;
+  line-height: 1.5;
+}
+
+div#unstake {
+  height: 28%;
+  width: 25%;
+  padding: 10px;
+  margin: 10px;
+  position: absolute;
+  top: 40%;
+  left: 60%;
+  border: 4px solid gainsboro;
+  border-radius: 25px;
+  background-color: blueviolet;
+  line-height: 1.5;
+}
+
+
+button {
+  margin: 8px;
+  height: 50px;
+  width: 160px;
+  background-color: aquamarine;
+  border: 2px, darkblue;
+  border-radius: 20px;
+  font-size: x-large;
+  color: indigo;
+}
+
+input {
+  height: 25px;
+  border: 2px, darkcyan;
+  border-radius: 20px;
+  text-align: center;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: large;
+}
+
+
+p {
+  margin: 15px;
 }
 </style>
